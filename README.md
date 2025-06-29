@@ -1,0 +1,1 @@
+This project is focussed on creating a AI agent that generates recommendations of nearby stores where deals are going on through reading my gmail account and validating my promotional coupons and also validating the weather predictions near my home
