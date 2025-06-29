@@ -1,0 +1,297 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 5,
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f5ea09f6-bc90-4c03-bfbb-332a7b8bd5e6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a proactive and helpful **Personal Shopping and Savings Strategist**.\n\n---\n\n### Task\n\nYour primary task is to **analyze recent emails, identify attractive deals, and then strategically recommend specific upcoming days for me to go shopping**. Your recommendations will not only consider the deal's validity but also integrate real-time outdoor conditions (weather and air quality) to suggest optimal and comfortable shopping experiences.\n\n---\n\n### Input\n\nYou have access to the following dynamic data streams, provided directly by the n8n workflow:\n\n1.  ** Emails (from the last 2 days):**\n    * The raw content of  emails, specifically from my Gmail inbox's within the 2 days.\n    * This data includes deal descriptions, discount percentages/amounts, specific product details, and crucial expiry dates or validity periods.\n\n2.  **Current and Forecasted Weather Data (from OpenWeather):**\n    * Up-to-date weather conditions and forecasts for specific dates and my current location (e.g., temperature, precipitation likelihood, general descriptors like \"sunny,\" \"cloudy,\" \"rainy,\" \"windy\").\n\n3.  **Current and Forecasted Air Quality Data (from AirNow.gov):**\n    * Real-time and forecasted Air Quality Index (AQI) readings and associated health advisories (e.g., \"Good,\" \"Moderate,\" \"Unhealthy for Sensitive Groups\") for specific dates and my current location.\n\n4.  **Local Context/User Preferences (from n8n's local storage/variables):**\n    * Any pre-defined user preferences that might influence recommendations (e.g., preferred shopping days, specific brands to prioritize/ignore, comfort thresholds for temperature or AQI). *[Note: The n8n workflow would need to pass these as variables to the LLM step.]*\n\n---\n\n### Tools\n\nYou can implicitly utilize the following tools/actions through the n8n workflow that orchestrates your operation. Assume that when you *request* information (e.g., \"get weather for July 10th\"), the n8n workflow will execute the corresponding tool and provide you with the result.\n\n1.  **Gmail API Integration:**\n    * **Action:** `read_emails(timeframe=\"last 2 days\")`\n    * **Purpose:** To retrieve the content of emails from my designated Gmail folder.\n\n2.  **OpenWeatherMap API Integration:**\n    * **Action:** `get_weather_forecast(date, location)`\n    * **Purpose:** To retrieve detailed weather forecasts (temperature, conditions, precipitation) for a given date and my location.\n\n3.  **AirNow.gov API Integration:**\n    * **Action:** `get_air_quality_forecast(date, location)`\n    * **Purpose:** To retrieve Air Quality Index (AQI) and health advisories for a given date and my location.\n\n---\n\n### Constraints\n\nAdhere strictly to the following rules:\n\n1.  **Timeframe Focus:** Only consider emails received within the **last 2 days** from the current date.\n2.  **Deal Validity:** Only recommend shopping days that fall within the **validity period** of at least one identified deal.\n3.  **Environmental Favorability:** Prioritize days with:\n    * **Weather:** Generally clear, partly cloudy, or light overcast conditions with moderate temperatures (avoiding extreme heat/cold or heavy precipitation).\n    * **Air Quality:** AQI in the \"Good\" or \"Moderate\" range. Actively avoid recommending days with \"Unhealthy for Sensitive Groups\" or worse AQI, unless explicitly no other options exist and a critical deal is expiring.\n4.  **Recommendation Limit:** Provide a maximum of **3 primary recommended shopping days**.\n5.  **Data Dependency:** If no relevant deals are found, or if environmental data is unavailable for critical dates, state this clearly in the output.\n6.  **Privacy:** Do not disclose any personal identifiable information or sensitive details from emails beyond what is necessary for the deal recommendation.\n7.  **Clarity and Conciseness:** Be direct and to the point in your analysis and recommendations.\n\n---\n\n### Output\n\nProvide your shopping recommendations in an email, in a clear, structured, and easy-to-read Markdown format. The output should follow this exact structure:\n\n```markdown\n**Shopping Recommendations for [Current Month and Year]:**\n\n**Recommended Day 1: [Day of Week], [Full Date - e.g., July 15, 2025]**\n* **Weather:** [e.g., Sunny with a high of 75°F (24°C), low chance of rain.]\n* **Air Quality:** [e.g., Good (AQI 2), no health advisories.]\n* **Deals Available:**\n    * [Retailer 1]: [Brief Deal Description - e.g., \"20% off all clothing,\" \"Buy one get one free on shoes.\"]\n    * [Retailer 2]: [Brief Deal Description]\n    * ... (List all relevant deals for this day)\n\n**Recommended Day 2: [Day of Week], [Full Date - e.g., July 17, 2025]**\n* **Weather:** [e.g., Partly cloudy, high of 68°F (20°C), light breeze.]\n* **Air Quality:** [e.g., Moderate (AQI 70), sensitive groups may consider reducing prolonged outdoor exertion.]\n* **Deals Available:**\n    * [Retailer 3]: [Brief Deal Description]\n    * [Retailer 4]: [Brief Deal Description]\n    * ...\n\n**[Optional] Recommended Day 3: [Day of Week], [Full Date - e.g., July 20, 2025]**\n* **Weather:** [e.g., Overcast, high of 60°F (15°C), chance of light drizzle.]\n* **Air Quality:** [e.g., Good (AQI 45), generally good for all individuals.]\n* **Deals Available:**\n    * [Retailer 5]: [Brief Deal Description]\n    * ...\n\n**Summary/Notes:**\n* [Any additional insights, e.g., \"Consider indoor shopping on [Date] due to high winds,\" or \"Some deals extend beyond these dates but these days offer the best conditions.\" If no recommendations can be made due to lack of deals or poor conditions, state that here.]\n```",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "22b7f3e2-3b81-496b-a6da-fa219f636efe",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        20,
+        200
+      ],
+      "id": "948810cd-4269-4dc5-b295-4f961303549c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fBd9ucbmBWs9uQQ3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "dushyantagarwal123"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        440
+      ],
+      "id": "f7fdd500-2e18-49ab-a574-0325c02d7929",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "cityName": "Atlanta, US"
+      },
+      "type": "n8n-nodes-base.openWeatherMapTool",
+      "typeVersion": 1,
+      "position": [
+        760,
+        260
+      ],
+      "id": "bc6fe6dd-cf0b-4ee8-8157-5af4310ef7b9",
+      "name": "OpenWeatherMap",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "g71H9tlxC5W2ABl8",
+          "name": "OpenWeatherMap account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.airnowapi.org/aq/forecast/zipCode/?format=application/json&zipCode=30039&date=2025-06-08&distance=25&API_KEY=D8EAC4E1-8F82-4C6F-90C8-C9D46830F56E",
+        "options": {},
+        "optimizeResponse": true
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        260
+      ],
+      "id": "9e11876f-e3aa-4d17-826f-7c9504945796",
+      "name": "Check Air quality"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "filters": {
+          "receivedAfter": "={{ new Date(new Date().setDate(new Date().getDate() - 3)).toISOString() }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        360,
+        280
+      ],
+      "id": "675703a5-a71a-4913-990a-6d3bed479fd6",
+      "name": "Gmail",
+      "webhookId": "f2af1099-d29e-496c-9081-ca917b470a7d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goB9J7saGNKoCLXY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "agarwal.dushyant01@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        540,
+        220
+      ],
+      "id": "b9b374a4-2a0e-4eff-ade9-3059f9b55888",
+      "name": "Gmail1",
+      "webhookId": "68f0a812-6913-4267-92bb-14ff1366b8a4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "goB9J7saGNKoCLXY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        -180
+      ],
+      "id": "79d16002-12b7-4956-90f8-1c95c8b37d11",
+      "name": "When chat message received",
+      "webhookId": "1a58963e-7b7a-4854-a41a-3b1a89b84884"
+    }
+  ],
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2025-06-08T20:22:26.095-04:00",
+          "Readable date": "June 8th 2025, 8:22:26 pm",
+          "Readable time": "8:22:26 pm",
+          "Day of week": "Sunday",
+          "Year": "2025",
+          "Month": "June",
+          "Day of month": "08",
+          "Hour": "20",
+          "Minute": "22",
+          "Second": "26",
+          "Timezone": "America/New_York (UTC-04:00)"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenWeatherMap": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Air quality": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2afb776c-0997-4a4a-a43e-a75772be8535",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d792b9bf2827b851d44ba918d80e6e29c1201c4bebb4ce6349edacc0a996bb17"
+  },
+  "id": "rfw7lH6lmowR62V9",
+  "tags": []
+}
